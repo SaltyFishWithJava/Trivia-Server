@@ -1,5 +1,6 @@
 package GameController;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -14,35 +15,77 @@ public class GameController {
 	static int RoomCount = 0;
 	static CopyOnWriteArraySet<Game> game = new CopyOnWriteArraySet<Game>();
 
+	static CopyOnWriteArraySet<GameLogic> playing = new CopyOnWriteArraySet<GameLogic>();
+
 	public GameController() {
 	}
 
 	/*
-	 * Game(int ID,int Gr,User ho,String na) public User(String uN, int sc)
+	 * hh Game(int ID,int Gr,User ho,String na) public User(String uN, int sc)
 	 */
-	synchronized static public boolean addGame(JSONObject js) {
-		User user = new User(js.getString("uN"), js.getInt("sc"));
-		return game.add(new Game(++RoomCount, js.getInt("mGr"), user, js.getString("mrn")));
+	synchronized static public boolean addGame(JSONObject js, User user) {
+		if (game.add(new Game(RoomCount + 1, 12, user, js.getString("mrn")))) {
+			RoomCount++;
+			return true;
+		}
+		return false;
 	}
 
-	static public Game findGame(int id) {
-		for (Game ga : game) {
-			if (ga.getID() == id) {
+	synchronized static public boolean addGame_(Game ga) {
+		if (game.add(ga)) {
+			RoomCount++;
+			return true;
+		}
+		return false;
+	}
+
+	synchronized static public boolean removePlayer(User user) {
+		return player.remove(user);
+	}
+
+	static public boolean addPlayingGame(GameLogic game) {
+		return playing.add(game);
+	}
+
+	static public boolean removePlayingGame(String game) {
+		for (GameLogic gl : playing) {
+			if (gl.getGame().getName().equals(game)) {
+				return playing.remove(gl);
+			}
+		}
+		return false;
+	}
+
+	static public GameLogic findPlayingGame(String mga) {
+		for (GameLogic ga : playing) {
+			if (ga.getGame().getName().equals(mga)) {
 				return ga;
 			}
 		}
 		return null;
 	}
 
-	synchronized static public void addPlayer(User pl) {
-		if (findPlayer(pl.getUserName()) == null) {
-			player.add(pl);
-		}
+	synchronized static public int joinGame(JSONObject js, User user) {
+		Game mg = findGame(js.getString("gN"));
+		return mg.addPlayer(user);
 	}
 
-	static public User findPlayer(String pl) {
+	static public Game findGame(String mga) {
+		for (Game ga : game) {
+			if (ga.getName().equals(mga)) {
+				return ga;
+			}
+		}
+		return null;
+	}
+
+	static public boolean addPlayer(User pl) {
+		return player.add(pl);
+	}
+
+	static public User findPlayer(String na) {
 		for (User user : player) {
-			if (user.getUserName().equals(pl)) {
+			if (user.getUserName().equals(na)) {
 				return user;
 			}
 		}
@@ -51,6 +94,14 @@ public class GameController {
 
 	static public void getGameList(CommonResponse res) {
 		int count = 0;
+		/*
+		 * TestGame
+		 */
+		/*
+		 * for (int i = 0; game.size() < 20 && i < 20; i++) { Game e = new
+		 * Game(i, 12, new User("test" + i, 0, (i % 4) + 1), "t" + i);
+		 * game.add(e); }
+		 */
 		for (Game ga : game) {
 			HashMap<String, String> gm = new HashMap<String, String>();
 			count++;
@@ -63,11 +114,19 @@ public class GameController {
 
 	static public void getPlayerList(String userName, CommonResponse res) {
 		int count = 0;
+		Date date = new Date();
+		long nowdate = date.getTime();
+		// while (player.size() < 20) {
+		// player.add(new User("player" + player.size(), 0, (player.size() % 4)
+		// + 1));
+		// }
 		for (User user : player) {
+			if (!user.checkOnLine()) {
+				continue;
+			}
 			HashMap<String, String> gm = new HashMap<String, String>();
 			count++;
 			user.putInformation(gm);
-			gm.put("isFriend", "false");
 			res.addListItem(gm);
 		}
 		res.setResCode(count + "");

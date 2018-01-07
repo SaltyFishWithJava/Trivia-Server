@@ -45,8 +45,16 @@ public class WebSocket_Login {
 				if (Code.equals("L")) {
 					ResultSet DBres = db.query(DBQuery.Login(obj.getString("uName"), obj.getString("pWord")));
 					if (DBres.next()) {
-						GameController.addPlayer(new User(DBres.getString("userName"), DBres.getInt("score")));
-						response.setResult("001", "LoginSuccess");
+						boolean login = GameController.addPlayer(
+								new User(DBres.getString("userName"), DBres.getInt("score"), DBres.getInt("avatar")));
+						if (login) {
+							response.setResult("001", "LoginSuccess");
+						} else {
+							User mu = GameController.findPlayer(DBres.getString("userName"));
+							if (mu != null) {
+								response.setResult("005", mu.getState().toString());
+							}
+						}
 					} else {
 						response.setResult("003", "LoginError");
 					}
@@ -75,7 +83,7 @@ public class WebSocket_Login {
 				// 将websocket传过来的值返回回去
 				String resStr = JSONObject.fromObject(response).toString();
 				session.getBasicRemote().sendText(resStr);
-				System.out.println(resStr);
+				// System.out.println(resStr);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

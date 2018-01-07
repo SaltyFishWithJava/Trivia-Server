@@ -17,38 +17,54 @@ import net.sf.json.JSONObject;
 public class WebSocket_PlayerList {
 	@OnOpen
 	public void onOpen() {
-		System.out.println("PL::WEBopen");
+		// System.out.println("PL::WEBopen");
 	}
 
 	@OnClose
 	public void onClose() {
-		System.out.println("PL::WEBCLOSE");
+		// System.out.println("PL::WEBCLOSE");
 	}
 
 	@OnMessage
 	public void onMessage(Session session, String msg) {
 		CommonResponse response = new CommonResponse();
-		System.out.println(msg);
+		JSONObject jsMsg = JSONObject.fromObject(msg);
+		// System.out.println(msg);
+
 		if (msg.equals("{}")) {
 			response.setResMsg("PLOK");
 		} else {
-			JSONObject jsMsg = JSONObject.fromObject(msg);
-			if (jsMsg.getString("Code").equals("R")) {
-				System.out.println("R");
-				GameController.getPlayerList(jsMsg.getString("uN"), response);
-			} else if (jsMsg.getString("Code").equals("RP")) {
-				System.out.println("RP");
-				User user = GameController.findPlayer(jsMsg.getString("uN"));
-				user.putInforAlone(response);
+			User user = GameController.findPlayer(jsMsg.getString("uN"));
+			if (user == null) {
+				response.setResMsg("NLogin");
 			} else {
-				response.setResMsg("RequestError");
+				user.setLoginS(true);
+				user.setLastReadTime();
+				if (jsMsg.getString("Code").equals("R")) {
+					// System.out.println("R");
+					GameController.getPlayerList(jsMsg.getString("uN"), response);
+				} else if (jsMsg.getString("Code").equals("RP")) {
+					// System.out.println("RP");
+					if (user != null) {
+						response.setResMsg("RP");
+						user.putInforAlone(response);
+					}
+				} else if (jsMsg.getString("Code").equals("Remove")) {
+					// System.out.println("Remove");
+					GameController.removePlayer(user);
+				} else if (jsMsg.getString("Code").equals("InGame")) {
+					// System.out.println("InGame");
+					user.setLoginS(false);
+				} else {
+					response.setResMsg("RequestError");
+				}
 			}
 		}
 		if (session.isOpen()) {
 			try {
 				String resStr = JSONObject.fromObject(response).toString();
 				session.getBasicRemote().sendText(resStr);
-				System.out.println(resStr);
+				// System.out.println(resStr);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
