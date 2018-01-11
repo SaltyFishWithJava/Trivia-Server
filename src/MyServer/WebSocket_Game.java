@@ -113,6 +113,9 @@ public class WebSocket_Game {
 					}
 					System.out.println(resStr);
 				}
+			} else if (jsMsg.getString("Code").equals("Remove")) {
+				User user = test.findPlayer(jsMsg.getString("uN"));
+				test.removePlayer(user);
 			} else if (jsMsg.getString("Code").equals("Question")) {
 				if (gl == null) {
 					gl = GameController.findPlayingGame(jsMsg.getString("gN"));

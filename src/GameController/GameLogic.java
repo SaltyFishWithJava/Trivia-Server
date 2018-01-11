@@ -211,11 +211,16 @@ public class GameLogic {
 	public void stopInfor(CommonResponse res) {
 		res.setResMsg("End");
 		Arrays.sort(player, new PlayerComparator());
+		String p[] = { "null", "null", "null", "null" };
+		String s[] = { "null", "null", "null", "null" };
 		for (int i = 0; i < player.length; i++) {
 			HashMap<String, String> hm = new HashMap<String, String>();
-			hm.put(player[i].getUserName(), player[i].getCoin() + "");
+			hm.put("uN", player[i].getUserName());
+			hm.put("sC", player[i].getCoin() + "");
 			res.addListItem(hm);
 			int score_ = player[i].getCoin() * (4 - i);
+			p[i] = player[i].getUserName();
+			s[i] = player[i].getCoin() + "";
 			player[i].setScore(player[i].getScore() + score_);
 			try {
 				db.update(DBQuery.UpdateScore(player[i].getUserName(), score_));
@@ -223,6 +228,12 @@ public class GameLogic {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		try {
+			db.update(DBQuery.UpdateGame(p[0], p[1], p[2], p[3], s[0], s[1], s[2], s[3]));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

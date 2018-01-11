@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import Entity.Game;
+import Entity.Game.GameState;
 import Entity.User;
 import Tools.CommonResponse;
 import net.sf.json.JSONObject;
@@ -103,10 +104,12 @@ public class GameController {
 		 * game.add(e); }
 		 */
 		for (Game ga : game) {
-			HashMap<String, String> gm = new HashMap<String, String>();
-			count++;
-			ga.putInformation(gm);
-			res.addListItem(gm);
+			if (!ga.getState().equals(GameState.DESTORY)) {
+				HashMap<String, String> gm = new HashMap<String, String>();
+				count++;
+				ga.putInformation(gm);
+				res.addListItem(gm);
+			}
 		}
 		res.setResCode(count + "");
 		res.setResMsg("RoomList");

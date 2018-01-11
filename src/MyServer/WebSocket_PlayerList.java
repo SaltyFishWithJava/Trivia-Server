@@ -50,7 +50,7 @@ public class WebSocket_PlayerList {
 						user.putInforAlone(response);
 					}
 				} else if (jsMsg.getString("Code").equals("Remove")) {
-					// System.out.println("Remove");
+					System.out.println("Remove");
 					GameController.removePlayer(user);
 				} else if (jsMsg.getString("Code").equals("InGame")) {
 					// System.out.println("InGame");

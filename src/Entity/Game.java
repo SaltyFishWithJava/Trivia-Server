@@ -87,6 +87,7 @@ public class Game {
 	synchronized public int addPlayer(User user) {
 		if (gs.equals(Game.GameState.WAITING)) {
 			if (players.add(user)) {
+				this.gs = GameState.WAITING;
 				if (players.size() == MAX_COUNT) {
 					this.gs = GameState.FULL;
 				}
@@ -108,16 +109,16 @@ public class Game {
 		return null;
 	}
 
-	synchronized boolean removePlayer(User user) {
+	synchronized public boolean removePlayer(User user) {
 		if (players.size() > 0) {
 			if (players.remove(user)) {
-				if (user.equals(host)) {
-					host = players.iterator().next();
-				}
-				if (players.size() < MAX_COUNT) {
-					this.gs = GameState.WAITING;
-				} else if (players.size() == 0) {
+				SessionMap.remove(user);
+				user.setState(State.IDLE);
+				if (players.size() == 0) {
 					this.gs = GameState.DESTORY;
+				} else if (players.size() < MAX_COUNT) {
+					host = players.iterator().next();
+					this.gs = GameState.WAITING;
 				}
 				return true;
 			}
@@ -158,6 +159,10 @@ public class Game {
 		return gamelogic;
 	}
 
+	synchronized public GameState getState() {
+		return this.gs;
+	}
+
 	synchronized public void stopGame() {
 		if (NOW_COUNT < MAX_COUNT) {
 			gs = GameState.WAITING;
@@ -173,9 +178,6 @@ public class Game {
 			}
 		}
 		GameController.removePlayingGame(name);
-		players.clear();
-		SessionMap.clear();
-		this.host = null;
 	}
 
 	public User getHost() {
@@ -198,7 +200,7 @@ public class Game {
 		return NOW_COUNT;
 	}
 
-	enum GameState {
+	public enum GameState {
 		WAITING("WAITING", 0), PLAYING("PLAYING", 1), FULL("FULL", 2), DESTORY("DESTORY", 3);
 		private String _name;
 		private int _id;

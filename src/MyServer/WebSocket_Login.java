@@ -50,10 +50,7 @@ public class WebSocket_Login {
 						if (login) {
 							response.setResult("001", "LoginSuccess");
 						} else {
-							User mu = GameController.findPlayer(DBres.getString("userName"));
-							if (mu != null) {
-								response.setResult("005", mu.getState().toString());
-							}
+							response.setResult("005", "Login");
 						}
 					} else {
 						response.setResult("003", "LoginError");
